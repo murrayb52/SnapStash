@@ -3,11 +3,11 @@ package io.github.murrayb52.snapstash
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import android.graphics.Color as AndroidColor
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -20,7 +20,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // Always dark, whatever the system theme: light status/navigation icons on the cabinet.
+        enableEdgeToEdge(SystemBarStyle.dark(AndroidColor.TRANSPARENT), SystemBarStyle.dark(AndroidColor.TRANSPARENT))
         ButtonStore.init(this)
 
         if (savedInstanceState != null) {
@@ -31,7 +32,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            SnapStashTheme {
                 val button = ButtonStore.get(cameraId)
                 when {
                     showSettings -> SettingsScreen(onBack = { showSettings = false })

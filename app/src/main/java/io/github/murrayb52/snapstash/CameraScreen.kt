@@ -31,6 +31,21 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -201,7 +216,7 @@ private fun CameraContent(button: CaptureButton, onBack: () -> Unit) {
                         return
                     }
                     savedCount++
-                    confirmation = "✓ Saved ${FolderAccess.displayName(context, doc) ?: name}"
+                    confirmation = FolderAccess.displayName(context, doc) ?: name
                     confirmationId++
                 }
 
@@ -217,63 +232,21 @@ private fun CameraContent(button: CaptureButton, onBack: () -> Unit) {
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
-
-        Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-            // Top bar: which folder we're shooting into, and how many saved so far.
-            Row(
-                Modifier.fillMaxWidth().padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                TextButton(onClick = onBack) { Text("‹ Back", color = Color.White, fontSize = 18.sp) }
-                Text(
-                    button.label,
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .background(button.color, RoundedCornerShape(50))
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
-                )
-                Text(
-                    "$savedCount saved",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(end = 8.dp),
-                )
-            }
-
-            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
-                confirmation?.let {
-                    Text(
-                        it,
-                        color = Color.White,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .background(Color(0xCC2E7D32), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                    )
-                }
-            }
-
-            // Shutter. Stays live while earlier shots save, so several in a row is one tap each.
-            Box(Modifier.fillMaxWidth().padding(bottom = 32.dp), contentAlignment = Alignment.Center) {
-                Box(
-                    Modifier
-                        .size(84.dp)
-                        .clip(CircleShape)
-                        .clickable { shoot() }
-                        .border(5.dp, Color.White, CircleShape)
-                        .padding(9.dp)
-                        .background(if (inFlight > 0) Color.LightGray else Color.White, CircleShape),
-                )
-            }
-        }
+        CameraChrome(
+            button = button,
+            savedCount = savedCount,
+            busy = inFlight > 0,
+            savedName = confirmation,
+            onBack = onBack,
+            onShoot = { shoot() },
+        )
     }
 
     error?.let { message ->
         AlertDialog(
             onDismissRequest = { error = null },
+            containerColor = Stash.Drawer,
+            icon = { Icon(Icons.Filled.Warning, contentDescription = null, tint = Stash.Danger) },
             title = { Text("Not saved") },
             text = { Text(message) },
             confirmButton = { TextButton(onClick = { error = null }) { Text("OK") } },
@@ -281,21 +254,153 @@ private fun CameraContent(button: CaptureButton, onBack: () -> Unit) {
     }
 }
 
+/**
+ * Everything drawn over the camera preview: where photos are going, how many were saved, the
+ * "Saved" confirmation and the shutter. Kept separate from the camera so it can be screenshot-tested.
+ */
+@Composable
+fun CameraChrome(
+    button: CaptureButton,
+    savedCount: Int,
+    busy: Boolean,
+    savedName: String?,
+    onBack: () -> Unit,
+    onShoot: () -> Unit,
+) {
+    val path = shortPath(FolderAccess.displayPath(Uri.parse(button.folderUri)))
+    Column(Modifier.fillMaxSize()) {
+        // Top: back, the destination folder, and the running count.
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.7f), Color.Transparent)))
+                .statusBarsPadding()
+                .padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 28.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.background(Color.Black.copy(alpha = 0.35f), CircleShape),
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Stash.Paper)
+            }
+            Spacer(Modifier.width(10.dp))
+            Row(
+                Modifier
+                    .weight(1f)
+                    .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MiniFolder(button.color, 30.dp, 24.dp)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        button.label,
+                        color = Stash.Paper,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        path,
+                        color = Stash.Paper.copy(alpha = 0.6f),
+                        fontFamily = Stash.Mono,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+            Column(
+                Modifier
+                    .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("$savedCount", color = Stash.Paper, fontSize = 18.sp, fontWeight = FontWeight.Bold, fontFamily = Stash.Mono)
+                Text("SAVED", style = Stash.TabLabel.copy(fontSize = 9.sp, letterSpacing = 1.5.sp), color = Stash.Paper.copy(alpha = 0.6f))
+            }
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        // Bottom: confirmation and shutter.
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f))))
+                .navigationBarsPadding()
+                .padding(top = 32.dp, bottom = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(Modifier.height(48.dp).padding(horizontal = 16.dp), contentAlignment = Alignment.Center) {
+                savedName?.let { name ->
+                    Row(
+                        Modifier
+                            .background(Stash.Filed, RoundedCornerShape(50))
+                            .padding(start = 10.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Saved", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            name,
+                            color = Color.White.copy(alpha = 0.85f),
+                            fontFamily = Stash.Mono,
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            // Shutter. Stays live while earlier shots save, so several in a row is one tap each.
+            Box(
+                Modifier
+                    .size(84.dp)
+                    .clip(CircleShape)
+                    .clickable(onClickLabel = "Take photo", onClick = onShoot)
+                    .border(4.dp, Stash.Paper, CircleShape)
+                    .padding(9.dp)
+                    .background(if (busy) lerp(button.color, Color.White, 0.5f) else button.color, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(painterResource(R.drawable.ic_camera), contentDescription = null, tint = Stash.Ink.copy(alpha = 0.75f), modifier = Modifier.size(28.dp))
+            }
+        }
+    }
+}
+
 @Composable
 private fun PermissionNeeded(showSettings: Boolean, onRetry: () -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     Column(
-        Modifier.fillMaxSize().background(Color.Black).safeDrawingPadding().padding(24.dp),
+        Modifier.fillMaxSize().background(Stash.Cabinet).safeDrawingPadding().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Box(
+            Modifier.size(72.dp).background(Stash.Drawer, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(painterResource(R.drawable.ic_camera), contentDescription = null, tint = Stash.Manila, modifier = Modifier.size(34.dp))
+        }
         Text(
             "SnapStash needs the camera to take photos.",
-            color = Color.White,
+            color = Stash.Paper,
             fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
         )
-        Button(onClick = onRetry) { Text("Allow camera") }
+        Button(onClick = onRetry, shape = RoundedCornerShape(16.dp), modifier = Modifier.height(52.dp)) {
+            Text("Allow camera", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+        }
         if (showSettings) {
             TextButton(onClick = {
                 context.startActivity(
@@ -304,6 +409,6 @@ private fun PermissionNeeded(showSettings: Boolean, onRetry: () -> Unit, onBack:
                 )
             }) { Text("Open app settings") }
         }
-        TextButton(onClick = onBack) { Text("Back") }
+        TextButton(onClick = onBack) { Text("Back", color = Stash.Muted) }
     }
 }

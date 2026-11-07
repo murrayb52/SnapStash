@@ -24,12 +24,13 @@ data class CaptureButton(
 
     companion object {
         val PALETTE = longArrayOf(
-            0xFF1565C0, // blue
-            0xFFC2185B, // pink
-            0xFF2E7D32, // green
-            0xFFEF6C00, // orange
-            0xFF6A1B9A, // purple
-            0xFF00838F, // teal
+            // Folder colours. Light enough for dark ink text, like real coloured file folders.
+            0xFFE9C46A, // manila
+            0xFF8EB8E5, // sky
+            0xFF8FC79F, // sage
+            0xFFF2998E, // coral
+            0xFFBBA8E3, // lavender
+            0xFF6CC8C2, // teal
         )
 
         fun slug(label: String): String =

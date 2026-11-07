@@ -83,6 +83,10 @@ last. The installed version is shown at the bottom of Settings.
 > installs over the previous one and keeps your buttons. It's a debug key, committed to the repo on
 > purpose, and not suitable for Play Store releases.
 
+**Screenshots:** CI also renders the main screens (home, settings, edit folder, camera) with
+Roborazzi. For builds of `main` they're published to the
+[`ci-screenshots`](../../tree/ci-screenshots) branch, so you can review the UI without installing.
+
 **Locally:** install [Android Studio](https://developer.android.com/studio), open this folder,
 and press Run with the phone connected over USB. Or, from a terminal with the Android SDK
 installed:

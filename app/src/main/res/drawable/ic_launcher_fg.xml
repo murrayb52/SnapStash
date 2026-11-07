@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Manila file folder with a camera lens on its front flap. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFA8853C"
+        android:pathData="M32,34 H46 Q48,34 49,36 L51,39 H76 Q78,39 78,41 V72 Q78,74 76,74 H32 Q30,74 30,72 V36 Q30,34 32,34 Z" />
+    <path android:fillColor="#FFDCD6C9" android:pathData="M36,42 H72 V60 H36 Z" />
+    <path android:fillColor="#FFF3EFE6" android:pathData="M40,45 H75 V60 H40 Z" />
+    <path android:fillColor="#FFE9C46A"
+        android:pathData="M30,50 H78 V72 Q78,74 76,74 H32 Q30,74 30,72 Z" />
+    <path android:fillColor="#FF1A1D22" android:fillType="evenOdd"
+        android:pathData="M54,55 A7,7 0 1,0 54.01,55 Z M54,58.5 A3.5,3.5 0 1,0 54.01,58.5 Z" />
+</vector>
