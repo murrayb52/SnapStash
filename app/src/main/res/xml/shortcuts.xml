@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the SnapStash icon to see these; drag one onto the home screen for one-tap capture. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="clicks"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_clicks"
+        android:shortcutShortLabel="@string/shortcut_clicks_short"
+        android:shortcutLongLabel="@string/shortcut_clicks_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="io.github.murrayb52.snapstash"
+            android:targetClass="io.github.murrayb52.snapstash.MainActivity">
+            <extra android:name="category" android:value="clicks" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="vitality"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_vitality"
+        android:shortcutShortLabel="@string/shortcut_vitality_short"
+        android:shortcutLongLabel="@string/shortcut_vitality_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="io.github.murrayb52.snapstash"
+            android:targetClass="io.github.murrayb52.snapstash.MainActivity">
+            <extra android:name="category" android:value="vitality" />
+        </intent>
+    </shortcut>
+</shortcuts>

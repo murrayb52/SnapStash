@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SnapStash</string>
+    <string name="shortcut_clicks_short">Clicks</string>
+    <string name="shortcut_clicks_long">Clicks camera</string>
+    <string name="shortcut_vitality_short">Vitality</string>
+    <string name="shortcut_vitality_long">Vitality camera</string>
+</resources>
