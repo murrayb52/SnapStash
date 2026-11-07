@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "io.github.murrayb52.snapstash"
-        // Android 10+: MediaStore RELATIVE_PATH lets us write into Pictures/ with no storage permission.
+        // Android 10+ (scoped storage era); folders are reached via the system folder picker.
         minSdk = 29
         targetSdk = 35
         versionCode = 1

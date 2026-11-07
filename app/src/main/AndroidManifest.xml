@@ -3,7 +3,7 @@
 
     <uses-feature android:name="android.hardware.camera.any" android:required="true" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- No storage permission: on Android 10+ an app may add its own photos to Pictures/ via MediaStore. -->
+    <!-- No storage permission: each button gets access to its own folder via the system folder picker. -->
 
     <application
         android:allowBackup="true"
