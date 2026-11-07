@@ -7,28 +7,45 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 
 /**
- * Home-screen shortcuts. Static shortcuts (long-press the app icon) are declared in
- * res/xml/shortcuts.xml; this asks the launcher to pin one straight onto the home screen.
+ * Home-screen shortcuts, one per button. They are kept in sync with the user's buttons: they
+ * appear when the app icon is long-pressed, can be pinned to the home screen, and are disabled
+ * if their button is deleted.
  */
 object Shortcuts {
+    const val EXTRA_BUTTON_ID = "button_id"
+
     fun canPin(context: Context): Boolean = ShortcutManagerCompat.isRequestPinShortcutSupported(context)
 
-    fun requestPin(context: Context, category: Category): Boolean {
-        val icon = when (category) {
-            Category.CLICKS -> R.drawable.ic_shortcut_clicks
-            Category.VITALITY -> R.drawable.ic_shortcut_vitality
+    fun requestPin(context: Context, button: CaptureButton): Boolean =
+        ShortcutManagerCompat.requestPinShortcut(context, info(context, button), null)
+
+    fun sync(context: Context, buttons: List<CaptureButton>) {
+        runCatching {
+            val max = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context)
+            val infos = buttons.map { info(context, it) }
+            ShortcutManagerCompat.setDynamicShortcuts(context, infos.take(max))
+            ShortcutManagerCompat.updateShortcuts(context, infos) // renames pinned ones too
+
+            val live = buttons.map { it.id }.toSet()
+            val stale = ShortcutManagerCompat
+                .getShortcuts(context, ShortcutManagerCompat.FLAG_MATCH_PINNED)
+                .map { it.id }
+                .filter { it !in live }
+            if (stale.isNotEmpty()) {
+                ShortcutManagerCompat.disableShortcuts(context, stale, "This button was deleted")
+            }
         }
-        val info = ShortcutInfoCompat.Builder(context, "pin_${category.id}")
-            .setShortLabel(category.label)
-            .setLongLabel("${category.label} camera")
-            .setIcon(IconCompat.createWithResource(context, icon))
-            .setIntent(captureIntent(context, category))
-            .build()
-        return ShortcutManagerCompat.requestPinShortcut(context, info, null)
     }
 
-    fun captureIntent(context: Context, category: Category): Intent =
-        Intent(context, MainActivity::class.java)
-            .setAction(Intent.ACTION_VIEW)
-            .putExtra(Category.EXTRA_CATEGORY, category.id)
+    private fun info(context: Context, button: CaptureButton): ShortcutInfoCompat =
+        ShortcutInfoCompat.Builder(context, button.id)
+            .setShortLabel(button.label)
+            .setLongLabel("${button.label} camera")
+            .setIcon(IconCompat.createWithResource(context, R.drawable.ic_shortcut))
+            .setIntent(
+                Intent(context, MainActivity::class.java)
+                    .setAction(Intent.ACTION_VIEW)
+                    .putExtra(EXTRA_BUTTON_ID, button.id)
+            )
+            .build()
 }

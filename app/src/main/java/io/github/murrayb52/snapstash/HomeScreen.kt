@@ -1,11 +1,9 @@
 package io.github.murrayb52.snapstash
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,13 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun HomeScreen(onOpen: (Category) -> Unit) {
+fun HomeScreen(buttons: List<CaptureButton>, onOpen: (CaptureButton) -> Unit, onSettings: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -34,33 +32,36 @@ fun HomeScreen(onOpen: (Category) -> Unit) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Category.entries.forEach { CategoryButton(it, onOpen) }
-    }
-}
-
-@Composable
-private fun ColumnScope.CategoryButton(category: Category, onOpen: (Category) -> Unit) {
-    val context = LocalContext.current
-    Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-        Button(
-            onClick = { onOpen(category) },
-            modifier = Modifier.fillMaxSize(),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = category.color, contentColor = Color.White),
-        ) {
-            Text(category.label, fontSize = 44.sp, fontWeight = FontWeight.Bold)
+        Box(Modifier.fillMaxWidth()) {
+            TextButton(onClick = onSettings, modifier = Modifier.align(Alignment.CenterEnd)) {
+                Text("⚙ Settings", color = Color.White, fontSize = 16.sp)
+            }
         }
-        // One-time setup helper; not needed during normal use.
-        if (Shortcuts.canPin(context)) {
-            TextButton(
-                onClick = {
-                    if (!Shortcuts.requestPin(context, category)) {
-                        Toast.makeText(context, "Your launcher can't add shortcuts", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier.align(Alignment.BottomCenter).padding(8.dp),
+
+        if (buttons.isEmpty()) {
+            Column(
+                Modifier.weight(1f).fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("Add to home screen", color = Color.White.copy(alpha = 0.8f))
+                Text(
+                    "No buttons yet.\nAdd one for each kind of photo you want to file.",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                )
+                Button(onClick = onSettings) { Text("Add a button", fontSize = 18.sp) }
+            }
+        } else {
+            buttons.forEach { button ->
+                Button(
+                    onClick = { onOpen(button) },
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = button.color, contentColor = Color.White),
+                ) {
+                    Text(button.label, fontSize = 40.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                }
             }
         }
     }

@@ -1,12 +1,9 @@
 package io.github.murrayb52.snapstash
 
 import android.Manifest
-import android.content.ContentValues
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.provider.MediaStore
 import android.provider.Settings
 import android.view.HapticFeedbackConstants
 import android.view.OrientationEventListener
@@ -66,7 +63,7 @@ import java.time.LocalDateTime
 private val namer = PhotoNamer()
 
 @Composable
-fun CameraScreen(category: Category, onBack: () -> Unit) {
+fun CameraScreen(button: CaptureButton, onBack: () -> Unit) {
     BackHandler(onBack = onBack)
     val context = LocalContext.current
 
@@ -88,7 +85,7 @@ fun CameraScreen(category: Category, onBack: () -> Unit) {
     }
 
     if (hasPermission) {
-        CameraContent(category, onBack)
+        CameraContent(button, onBack)
     } else {
         PermissionNeeded(
             showSettings = askedOnce,
@@ -99,7 +96,7 @@ fun CameraScreen(category: Category, onBack: () -> Unit) {
 }
 
 @Composable
-private fun CameraContent(category: Category, onBack: () -> Unit) {
+private fun CameraContent(button: CaptureButton, onBack: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -114,7 +111,7 @@ private fun CameraContent(category: Category, onBack: () -> Unit) {
             .build()
     }
 
-    var savedCount by remember(category) { mutableIntStateOf(0) }
+    var savedCount by remember(button.id) { mutableIntStateOf(0) }
     var inFlight by remember { mutableIntStateOf(0) }
     var confirmation by remember { mutableStateOf<String?>(null) }
     var confirmationId by remember { mutableIntStateOf(0) }
@@ -159,6 +156,14 @@ private fun CameraContent(category: Category, onBack: () -> Unit) {
         onDispose { listener.disable() }
     }
 
+    // Warn straight away if the folder became unreachable since it was chosen.
+    LaunchedEffect(button.folderUri) {
+        if (!FolderAccess.hasAccess(context, Uri.parse(button.folderUri))) {
+            error = "SnapStash no longer has access to ${FolderAccess.displayPath(Uri.parse(button.folderUri))}. " +
+                "Photos can't be saved until you pick the folder again in Settings."
+        }
+    }
+
     LaunchedEffect(confirmationId) {
         if (confirmation != null) {
             delay(2_000)
@@ -168,35 +173,42 @@ private fun CameraContent(category: Category, onBack: () -> Unit) {
 
     fun shoot() {
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-        val name = namer.fileName(category, LocalDateTime.now())
-        val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, PhotoNamer.relativePath(category))
+        val name = namer.fileName(button.filePrefix, LocalDateTime.now())
+        val folder = Uri.parse(button.folderUri)
+
+        // Create the file in this button's folder *before* capturing, so a missing or
+        // inaccessible folder is reported immediately instead of silently losing the shot.
+        val (doc, stream) = try {
+            FolderAccess.createPhoto(context, folder, name)
+        } catch (e: Exception) {
+            error = "Photo NOT saved.\n\nCan't write to ${FolderAccess.displayPath(folder)}. " +
+                "It may have been moved, deleted or disconnected — pick the folder again in Settings." +
+                "\n\n(${e.message ?: e.javaClass.simpleName})"
+            return
         }
-        val options = ImageCapture.OutputFileOptions.Builder(
-            context.contentResolver, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
-        ).build()
 
         inFlight++
         imageCapture.takePicture(
-            options,
+            ImageCapture.OutputFileOptions.Builder(stream).build(),
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     inFlight--
-                    val uri = output.savedUri
-                    if (uri == null) {
-                        error = "The camera reported success but returned no file for $name."
+                    val closed = runCatching { stream.close() }
+                    if (closed.isFailure) {
+                        FolderAccess.delete(context, doc)
+                        error = "Photo NOT saved ($name).\n\n${closed.exceptionOrNull()?.message ?: "Write failed"}"
                         return
                     }
                     savedCount++
-                    confirmation = "✓ Saved ${displayName(context, uri) ?: name}"
+                    confirmation = "✓ Saved ${FolderAccess.displayName(context, doc) ?: name}"
                     confirmationId++
                 }
 
                 override fun onError(exception: ImageCaptureException) {
                     inFlight--
+                    runCatching { stream.close() }
+                    FolderAccess.delete(context, doc)
                     error = "Photo NOT saved ($name).\n\n${exception.message ?: "Unknown error"}"
                 }
             },
@@ -215,12 +227,12 @@ private fun CameraContent(category: Category, onBack: () -> Unit) {
             ) {
                 TextButton(onClick = onBack) { Text("‹ Back", color = Color.White, fontSize = 18.sp) }
                 Text(
-                    category.label,
+                    button.label,
                     color = Color.White,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .background(category.color, RoundedCornerShape(50))
+                        .background(button.color, RoundedCornerShape(50))
                         .padding(horizontal = 16.dp, vertical = 6.dp),
                 )
                 Text(
@@ -268,12 +280,6 @@ private fun CameraContent(category: Category, onBack: () -> Unit) {
         )
     }
 }
-
-private fun displayName(context: Context, uri: Uri): String? = runCatching {
-    context.contentResolver.query(
-        uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null
-    )?.use { if (it.moveToFirst()) it.getString(0) else null }
-}.getOrNull()
 
 @Composable
 private fun PermissionNeeded(showSettings: Boolean, onRetry: () -> Unit, onBack: () -> Unit) {

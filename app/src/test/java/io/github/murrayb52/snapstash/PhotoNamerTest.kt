@@ -10,22 +10,16 @@ class PhotoNamerTest {
     @Test
     fun namesIncludePrefixDateAndTime() {
         val namer = PhotoNamer()
-        assertEquals("clicks_2026-11-07_121305.jpg", namer.fileName(Category.CLICKS, t))
-        assertEquals("vitality_2026-11-07_121306.jpg", namer.fileName(Category.VITALITY, t.plusSeconds(1)))
+        assertEquals("clicks_2026-11-07_121305.jpg", namer.fileName("clicks", t))
+        assertEquals("vitality_2026-11-07_121306.jpg", namer.fileName("vitality", t.plusSeconds(1)))
     }
 
     @Test
     fun sameSecondShotsGetASuffix() {
         val namer = PhotoNamer()
-        assertEquals("clicks_2026-11-07_121305.jpg", namer.fileName(Category.CLICKS, t))
-        assertEquals("clicks_2026-11-07_121305_2.jpg", namer.fileName(Category.CLICKS, t))
-        assertEquals("clicks_2026-11-07_121305_3.jpg", namer.fileName(Category.CLICKS, t))
-        assertEquals("clicks_2026-11-07_121306.jpg", namer.fileName(Category.CLICKS, t.plusSeconds(1)))
-    }
-
-    @Test
-    fun eachCategoryHasItsOwnFolder() {
-        assertEquals("Pictures/SnapStash/Clicks/", PhotoNamer.relativePath(Category.CLICKS))
-        assertEquals("Pictures/SnapStash/Vitality/", PhotoNamer.relativePath(Category.VITALITY))
+        assertEquals("clicks_2026-11-07_121305.jpg", namer.fileName("clicks", t))
+        assertEquals("clicks_2026-11-07_121305_2.jpg", namer.fileName("clicks", t))
+        assertEquals("clicks_2026-11-07_121305_3.jpg", namer.fileName("clicks", t))
+        assertEquals("clicks_2026-11-07_121306.jpg", namer.fileName("clicks", t.plusSeconds(1)))
     }
 }
