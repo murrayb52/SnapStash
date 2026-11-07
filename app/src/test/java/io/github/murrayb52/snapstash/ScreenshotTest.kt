@@ -9,13 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.takahirom.roborazzi.ExperimentalRoborazziApi
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
-import com.github.takahirom.roborazzi.captureScreenRoboImage
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -85,17 +84,15 @@ class ScreenshotTest {
         shot("4_settings")
     }
 
-    @OptIn(ExperimentalRoborazziApi::class)
     @Test
     fun editDialog() {
         compose.setContent {
             SnapStashTheme {
-                Box(Modifier.fillMaxSize().background(Stash.Cabinet))
                 EditFolderDialog(initial = sample[0], title = "Edit folder", onDismiss = {}, onSave = {})
             }
         }
-        compose.waitForIdle()
-        captureScreenRoboImage("build/screenshots/5_edit_folder.png")
+        // The dialog lives in its own window; capture that node rather than the (empty) root.
+        compose.onNode(isDialog()).captureRoboImage("build/screenshots/5_edit_folder.png")
     }
 
     @Test
