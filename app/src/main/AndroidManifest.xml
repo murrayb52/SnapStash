@@ -23,5 +23,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Listed by the launcher among its widgets/shortcuts: asks which button the new shortcut opens. -->
+        <activity
+            android:name=".ShortcutPickerActivity"
+            android:exported="true"
+            android:icon="@drawable/ic_shortcut"
+            android:label="@string/shortcut_picker_label"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

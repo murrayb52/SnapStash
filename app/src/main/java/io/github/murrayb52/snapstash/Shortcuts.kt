@@ -19,6 +19,10 @@ object Shortcuts {
     fun requestPin(context: Context, button: CaptureButton): Boolean =
         ShortcutManagerCompat.requestPinShortcut(context, info(context, button), null)
 
+    /** Result for a launcher's "add shortcut" flow (see [ShortcutPickerActivity]). */
+    fun createResultIntent(context: Context, button: CaptureButton): Intent =
+        ShortcutManagerCompat.createShortcutResultIntent(context, info(context, button))
+
     fun sync(context: Context, buttons: List<CaptureButton>) {
         runCatching {
             val max = ShortcutManagerCompat.getMaxShortcutCountPerActivity(context)

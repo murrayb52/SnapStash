@@ -36,6 +36,8 @@ Every button automatically gets a shortcut:
 
 - **Long-press the SnapStash icon** to see your buttons. Drag one to the home screen.
 - Or, in Settings, tap **Add to home screen** on a button.
+- Or, from the launcher's widgets/shortcuts list, add **SnapStash camera**. It asks which button
+  the shortcut should open, then places it.
 
 Renaming a button renames its shortcut. Deleting a button disables its shortcut.
 
@@ -99,6 +101,7 @@ app/src/main/java/io/github/murrayb52/snapstash/
   FolderAccess.kt    Folder picker start location, folder permissions, writing files
   PhotoNamer.kt      Filename scheme
   Shortcuts.kt       Launcher shortcuts kept in sync with the buttons
+  ShortcutPickerActivity.kt  "SnapStash camera" shortcut from the launcher: pick which button
 ```
 
 ## Open question
