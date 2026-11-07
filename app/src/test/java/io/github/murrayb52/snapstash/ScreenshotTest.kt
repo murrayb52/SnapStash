@@ -5,11 +5,13 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -86,13 +88,18 @@ class ScreenshotTest {
 
     @Test
     fun editDialog() {
+        // The form as shown inside its dialog, over a dimmed screen.
         compose.setContent {
             SnapStashTheme {
-                EditFolderDialog(initial = sample[0], title = "Edit folder", onDismiss = {}, onSave = {})
+                Box(
+                    Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)).padding(24.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    EditFolderCard(initial = sample[0], title = "Edit folder", onDismiss = {}, onSave = {})
+                }
             }
         }
-        // The dialog lives in its own window; capture that node rather than the (empty) root.
-        compose.onNode(isDialog()).captureRoboImage("build/screenshots/5_edit_folder.png")
+        shot("5_edit_folder")
     }
 
     @Test

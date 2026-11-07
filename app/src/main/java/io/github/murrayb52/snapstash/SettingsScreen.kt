@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDateTime
@@ -259,7 +260,20 @@ private fun FolderRow(
 }
 
 @Composable
-internal fun EditFolderDialog(
+private fun EditFolderDialog(
+    initial: CaptureButton,
+    title: String,
+    onDismiss: () -> Unit,
+    onSave: (CaptureButton) -> Unit,
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        EditFolderCard(initial, title, onDismiss, onSave)
+    }
+}
+
+/** The add/edit form. Separate from its dialog window so it can be screenshot-tested. */
+@Composable
+internal fun EditFolderCard(
     initial: CaptureButton,
     title: String,
     onDismiss: () -> Unit,
@@ -284,12 +298,9 @@ internal fun EditFolderDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = Stash.Drawer,
-        title = { Text(title, fontWeight = FontWeight.SemiBold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Surface(shape = RoundedCornerShape(28.dp), color = Stash.Drawer, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(title, color = Stash.Paper, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
                 OutlinedTextField(
                     value = label,
                     onValueChange = { label = it },
@@ -350,17 +361,18 @@ internal fun EditFolderDialog(
                     )
                 }
                 problem?.let { Text(it, color = Stash.Danger) }
+
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onDismiss) { Text("Cancel", color = Stash.Muted) }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = { onSave(draft) },
+                        enabled = label.isNotBlank() && folderUri.isNotEmpty(),
+                        shape = RoundedCornerShape(12.dp),
+                    ) { Text("Save") }
+                }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onSave(draft) },
-                enabled = label.isNotBlank() && folderUri.isNotEmpty(),
-                shape = RoundedCornerShape(12.dp),
-            ) { Text("Save") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = Stash.Muted) } },
-    )
+    }
 }
 
 private val EXAMPLE_STAMP: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss")
