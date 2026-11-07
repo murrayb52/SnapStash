@@ -71,20 +71,24 @@ Other technical decisions:
 
 **Easiest (no tools needed):** every push runs the GitHub Actions workflow
 [`Build APK`](.github/workflows/build.yml). Open the latest run under the repo's **Actions** tab,
-download the `snapstash-debug-apk` artifact, unzip it, and install `app-debug.apk` on the phone
-(you will need to allow "Install unknown apps" for your browser or file manager).
+download the `snapstash-<version>-debug` artifact (e.g. `snapstash-0.1.12-debug`), unzip it, and
+install the APK inside on the phone (you will need to allow "Install unknown apps" for your browser
+or file manager).
 
-> Each CI run signs with a fresh debug key. To install a newer build over an older one, you may
-> first need to uninstall the old one. Your photos are safe either way, because they live in
-> `Pictures/`, not inside the app. A fixed release signing key can be added later if this gets
-> annoying.
+Versions are `<major.minor>.<CI run number>`. Major.minor is `snapstash.version` in
+`gradle.properties`, and the run number is also the `versionCode`, so each build is newer than the
+last. The installed version is shown at the bottom of Settings.
+
+> Every build is signed with the same debug key, `app/signing/debug.keystore`, so a new build
+> installs over the previous one and keeps your buttons. It's a debug key, committed to the repo on
+> purpose, and not suitable for Play Store releases.
 
 **Locally:** install [Android Studio](https://developer.android.com/studio), open this folder,
 and press Run with the phone connected over USB. Or, from a terminal with the Android SDK
 installed:
 
 ```sh
-./gradlew assembleDebug        # APK at app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleDebug        # APK at app/build/outputs/apk/debug/app-debug.apk (version 0.1-local)
 ./gradlew testDebugUnitTest    # unit tests
 ```
 

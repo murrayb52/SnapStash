@@ -11,3 +11,5 @@ build/
 *.aab
 *.jks
 *.keystore
+# Fixed debug key, so every build can update the previous one. Not a release key.
+!app/signing/debug.keystore

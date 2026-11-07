@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// CI passes its run number, so every build has a higher versionCode than the one before.
+val buildNumber = providers.environmentVariable("SNAPSTASH_BUILD_NUMBER").orNull?.toInt()
+val baseVersion = providers.gradleProperty("snapstash.version").get()
+
 android {
     namespace = "io.github.murrayb52.snapstash"
     compileSdk = 35
@@ -13,8 +17,18 @@ android {
         // Android 10+ (scoped storage era); folders are reached via the system folder picker.
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = buildNumber ?: 1
+        versionName = if (buildNumber != null) "$baseVersion.$buildNumber" else "$baseVersion-local"
+    }
+
+    signingConfigs {
+        // A fixed debug key checked into the repo, so a new build installs over the previous one.
+        getByName("debug") {
+            storeFile = file("signing/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

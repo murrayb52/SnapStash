@@ -86,6 +86,16 @@ fun SettingsScreen(onBack: () -> Unit) {
             },
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
         ) { Text("+ Add button", fontSize = 18.sp) }
+
+        val version = remember {
+            runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()
+        }
+        Text(
+            "SnapStash ${version ?: ""}".trim(),
+            color = Color.White.copy(alpha = 0.5f),
+            fontSize = 12.sp,
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp),
+        )
     }
 
     editing?.let { draft ->

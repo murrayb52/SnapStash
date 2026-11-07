@@ -19,13 +19,22 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
+      - name: Version
+        id: version
+        run: |
+          base=$(sed -n 's/^snapstash.version=//p' gradle.properties)
+          echo "name=$base.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
       - name: Unit tests and debug APK
+        env:
+          SNAPSTASH_BUILD_NUMBER: ${{ github.run_number }}
         run: ./gradlew --no-daemon testDebugUnitTest assembleDebug
+      - name: Name the APK
+        run: mv app/build/outputs/apk/debug/app-debug.apk "snapstash-${{ steps.version.outputs.name }}-debug.apk"
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: snapstash-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: snapstash-${{ steps.version.outputs.name }}-debug
+          path: snapstash-${{ steps.version.outputs.name }}-debug.apk
           if-no-files-found: error
       - name: Upload test and build reports
         if: failure()
