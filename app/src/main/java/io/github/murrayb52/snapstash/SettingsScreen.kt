@@ -52,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -112,6 +113,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     },
                 )
             }
+            item(key = "quick") { QuickLauncherSection() }
         }
 
         Column(Modifier.padding(16.dp)) {
@@ -169,6 +171,51 @@ fun SettingsScreen(onBack: () -> Unit) {
             },
             dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel") } },
         )
+    }
+}
+
+/** Settings for SnapStash Quick, the gesture launcher card: how it animates in. */
+@Composable
+private fun QuickLauncherSection() {
+    val context = LocalContext.current
+    var chosen by remember { mutableStateOf(QuickLaunchPrefs.animation(context)) }
+    Column(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 22.dp, bottom = 8.dp)) {
+        Text("QUICK LAUNCHER", style = Stash.TabLabel, color = Stash.Manila)
+        Text(
+            "Opening animation",
+            color = Stash.Paper,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 6.dp),
+        )
+        Text("How the SnapStash Quick card appears.", color = Stash.Muted, fontSize = 13.sp)
+        Row(
+            Modifier.fillMaxWidth().padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            QuickAnimation.entries.forEach { animation ->
+                val selected = animation == chosen
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (selected) Stash.Manila else Stash.Drawer)
+                        .clickable {
+                            chosen = animation
+                            QuickLaunchPrefs.setAnimation(context, animation)
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        animation.label,
+                        color = if (selected) Stash.Ink else Stash.Paper,
+                        fontSize = 14.sp,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                    )
+                }
+            }
+        }
     }
 }
 

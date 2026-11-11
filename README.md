@@ -45,17 +45,23 @@ Renaming a button renames its shortcut. Deleting a button disables its shortcut.
 
 SnapStash installs a second launcher entry, **SnapStash Quick**, made to be opened by a
 home-screen gesture (in Octopi or Nova, set a gesture's action to open the app *SnapStash Quick*).
-It shows a card over the bottom half of the home screen:
+It shows a card that floats up from the bottom of the home screen, with the home screen still
+visible around it:
 
-- **Swipe up anywhere** to go straight to the phone's normal camera app. It fires as soon as the
-  swipe passes a short distance, without waiting for your finger to lift.
-- **Tap a folder** to open SnapStash's camera for it.
+- **Tap a folder** in the list to open SnapStash's camera for it.
+- **Swipe up anywhere** to go straight to the phone's normal camera app (the hint is at the bottom
+  of the card). It fires as soon as the swipe passes a short distance, without waiting for your
+  finger to lift.
 - **Tap outside the card**, or press back, to go back to the home screen.
-- **Open SnapStash** at the bottom opens the full app.
+- **Open app** in the corner opens the full app.
+
+The card grows taller as you add folders. Once it reaches the top of the screen, the list scrolls.
+How it appears is set in **Settings → Quick launcher**: *Slide up* (default), *Pop*, *Fade* or
+*None*. Opening a camera is always instant; only closing back to the home screen animates.
 
 The card is built for speed: plain Android views rather than Compose, a see-through window with no
-animation or splash, and nothing left behind in Recents. While it is showing, it warms up the
-camera library in the background so a folder's camera opens faster.
+window animation or splash, and nothing left behind in Recents. While it is showing, it warms up
+the camera library in the background so a folder's camera opens faster.
 
 ## Framework choice
 

@@ -1,6 +1,7 @@
 package io.github.murrayb52.snapstash
 
 import android.content.Context
+import android.os.Looper
 import android.os.SystemClock
 import android.provider.MediaStore
 import android.view.MotionEvent
@@ -20,6 +21,7 @@ import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.time.Duration
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -33,14 +35,20 @@ class QuickLaunchActivityTest {
         CaptureButton(id = "4", label = "Medical aid claims", folderUri = "content://x/4", colorIndex = 3),
     )
 
+    private val context: Context get() = ApplicationProvider.getApplicationContext()
+
     @Before
     fun folders() {
-        ButtonStore.init(ApplicationProvider.getApplicationContext<Context>())
+        QuickLaunchPrefs.setAnimation(context, QuickLaunchPrefs.DEFAULT)
+        ButtonStore.init(context)
         ButtonStore.buttons.clear()
         ButtonStore.buttons.addAll(sample)
     }
 
     private fun launch() = Robolectric.buildActivity(QuickLaunchActivity::class.java).setup().get()
+
+    /** Lets entrance/exit animations run to the end. */
+    private fun settle() = shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2))
 
     private fun touch(activity: QuickLaunchActivity, action: Int, x: Float, y: Float) {
         val now = SystemClock.uptimeMillis()
@@ -100,22 +108,73 @@ class QuickLaunchActivityTest {
     @Test
     fun tappingOutsideTheCardCloses() {
         val activity = launch()
+        settle()
         val card = viewDescribed(activity, "SnapStash quick launcher")
         assertFalse(activity.isFinishing)
         (card.parent as View).performClick()
+        settle() // the card animates out first
 
         assertTrue(activity.isFinishing)
         assertNull(shadowOf(activity).nextStartedActivity)
     }
 
     @Test
-    fun screenshot() {
-        launch().window.decorView.captureRoboImage("build/screenshots/7_quick_launcher.png")
+    fun withNoAnimationTappingOutsideClosesAtOnce() {
+        QuickLaunchPrefs.setAnimation(context, QuickAnimation.NONE)
+        val activity = launch()
+        (viewDescribed(activity, "SnapStash quick launcher").parent as View).performClick()
+
+        assertTrue(activity.isFinishing)
+    }
+
+    @Test
+    fun everyAnimationShowsTheCardFully() {
+        QuickAnimation.entries.forEach { animation ->
+            QuickLaunchPrefs.setAnimation(context, animation)
+            val activity = launch()
+            settle()
+            val card = viewDescribed(activity, "SnapStash quick launcher")
+            assertEquals("$animation alpha", 1f, card.alpha)
+            assertEquals("$animation translation", 0f, card.translationY)
+            assertEquals("$animation scale", 1f, card.scaleX)
+        }
+    }
+
+    @Test
+    fun animationChoiceIsRemembered() {
+        assertEquals(QuickAnimation.SLIDE, QuickLaunchPrefs.animation(context))
+        QuickLaunchPrefs.setAnimation(context, QuickAnimation.POP)
+        assertEquals(QuickAnimation.POP, QuickLaunchPrefs.animation(context))
+    }
+
+    private fun shot(name: String) {
+        val activity = launch()
+        settle()
+        activity.window.decorView.captureRoboImage("build/screenshots/$name.png")
+    }
+
+    @Test
+    fun screenshot() = shot("7_quick_launcher")
+
+    @Test
+    fun screenshotOneFolder() {
+        ButtonStore.buttons.retainAll { it.id == "1" }
+        shot("8_quick_launcher_one_folder")
+    }
+
+    @Test
+    fun screenshotManyFolders() {
+        val extra = listOf("Groceries", "Car service", "Warranty cards", "School notices", "Plants", "Paint colours",
+            "Parking", "Wine labels", "Recipes", "Serial numbers", "Gym", "Kids' art")
+        extra.forEachIndexed { i, label ->
+            ButtonStore.buttons.add(CaptureButton(id = "x$i", label = label, folderUri = "content://x/x$i", colorIndex = i))
+        }
+        shot("9_quick_launcher_many_folders")
     }
 
     @Test
     fun screenshotNoFolders() {
         ButtonStore.buttons.clear()
-        launch().window.decorView.captureRoboImage("build/screenshots/8_quick_launcher_empty.png")
+        shot("10_quick_launcher_empty")
     }
 }
