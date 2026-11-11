@@ -24,6 +24,26 @@
             </intent-filter>
         </activity>
 
+        <!--
+            The quick launcher: its own launcher entry, so a home-screen gesture can open it.
+            A see-through card over the home screen that never lingers in Recents or the back stack.
+        -->
+        <activity
+            android:name=".QuickLaunchActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:icon="@drawable/ic_quick"
+            android:label="@string/quick_label"
+            android:noHistory="true"
+            android:screenOrientation="portrait"
+            android:taskAffinity="io.github.murrayb52.snapstash.quick"
+            android:theme="@style/Theme.SnapStash.Quick">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <!-- Listed by the launcher among its widgets/shortcuts: asks which button the new shortcut opens. -->
         <activity
             android:name=".ShortcutPickerActivity"

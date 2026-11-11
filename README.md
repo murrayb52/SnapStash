@@ -41,6 +41,22 @@ Every button automatically gets a shortcut:
 
 Renaming a button renames its shortcut. Deleting a button disables its shortcut.
 
+### SnapStash Quick (gesture launcher)
+
+SnapStash installs a second launcher entry, **SnapStash Quick**, made to be opened by a
+home-screen gesture (in Octopi or Nova, set a gesture's action to open the app *SnapStash Quick*).
+It shows a card over the bottom half of the home screen:
+
+- **Swipe up anywhere** to go straight to the phone's normal camera app. It fires as soon as the
+  swipe passes a short distance, without waiting for your finger to lift.
+- **Tap a folder** to open SnapStash's camera for it.
+- **Tap outside the card**, or press back, to go back to the home screen.
+- **Open SnapStash** at the bottom opens the full app.
+
+The card is built for speed: plain Android views rather than Compose, a see-through window with no
+animation or splash, and nothing left behind in Recents. While it is showing, it warms up the
+camera library in the background so a folder's camera opens faster.
+
 ## Framework choice
 
 | Option | Verdict | Why |
@@ -71,19 +87,22 @@ Other technical decisions:
 
 **Easiest (no tools needed):** every push runs the GitHub Actions workflow
 [`Build APK`](.github/workflows/build.yml). Open the latest run under the repo's **Actions** tab,
-download the `snapstash-<version>-debug` artifact (e.g. `snapstash-0.1.12-debug`), unzip it, and
-install the APK inside on the phone (you will need to allow "Install unknown apps" for your browser
+download the `snapstash-<version>` artifact (e.g. `snapstash-0.1.12`), unzip it, and install the
+APK inside on the phone (you will need to allow "Install unknown apps" for your browser
 or file manager).
 
 Versions are `<major.minor>.<CI run number>`. Major.minor is `snapstash.version` in
 `gradle.properties`, and the run number is also the `versionCode`, so each build is newer than the
 last. The installed version is shown at the bottom of Settings.
 
-> Every build is signed with the same debug key, `app/signing/debug.keystore`, so a new build
+The `snapstash-<version>` APK is the optimised release build (shrunk by R8, not debuggable), which
+starts noticeably faster. A `-debug` APK is uploaded alongside it for troubleshooting.
+
+> Every build, release and debug, is signed with the same debug key, `app/signing/debug.keystore`, so a new build
 > installs over the previous one and keeps your buttons. It's a debug key, committed to the repo on
 > purpose, and not suitable for Play Store releases.
 
-**Screenshots:** CI also renders the main screens (home, settings, edit folder, camera) with
+**Screenshots:** CI also renders the main screens (home, settings, edit folder, camera, quick launcher) with
 Roborazzi. For builds of `main` they're published to the
 [`ci-screenshots`](../../tree/ci-screenshots) branch, so you can review the UI without installing.
 
@@ -92,7 +111,8 @@ and press Run with the phone connected over USB. Or, from a terminal with the An
 installed:
 
 ```sh
-./gradlew assembleDebug        # APK at app/build/outputs/apk/debug/app-debug.apk (version 0.1-local)
+./gradlew assembleRelease      # APK at app/build/outputs/apk/release/app-release.apk (version 0.1-local)
+./gradlew assembleDebug        # APK at app/build/outputs/apk/debug/app-debug.apk
 ./gradlew testDebugUnitTest    # unit tests
 ```
 
@@ -101,6 +121,7 @@ installed:
 ```
 app/src/main/java/io/github/murrayb52/snapstash/
   MainActivity.kt    Entry point; routes shortcut intents straight to a camera
+  QuickLaunchActivity.kt  "SnapStash Quick": swipe up for the system camera, tap a folder
   HomeScreen.kt      The big buttons (or a prompt to add the first one)
   SettingsScreen.kt  Add / rename / choose folder / reorder / delete buttons
   CameraScreen.kt    CameraX viewfinder, shutter, save confirmation and errors

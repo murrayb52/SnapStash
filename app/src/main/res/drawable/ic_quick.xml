@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SnapStash Quick: manila tile, a camera lens with a "swipe up" chevron. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_quick_bg" />
+    <foreground android:drawable="@drawable/ic_quick_fg" />
+    <monochrome android:drawable="@drawable/ic_quick_fg" />
+</adaptive-icon>

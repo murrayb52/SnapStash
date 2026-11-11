@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">SnapStash</string>
     <string name="shortcut_picker_label">SnapStash camera</string>
+    <string name="quick_label">SnapStash Quick</string>
 </resources>

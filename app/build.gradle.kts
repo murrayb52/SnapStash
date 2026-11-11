@@ -33,8 +33,14 @@ android {
     }
 
     buildTypes {
+        // The build to install. Non-debuggable and shrunk/optimised by R8, which makes Compose and
+        // app startup much faster than the debug build. Signed with the same key as debug, so it
+        // installs over a debug build (and vice versa) without uninstalling.
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -55,6 +61,8 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    // Applies the libraries' bundled startup (baseline) profiles on sideloaded installs too.
+    implementation(libs.androidx.profileinstaller)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(platform(libs.androidx.compose.bom))

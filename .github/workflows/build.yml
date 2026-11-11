@@ -26,12 +26,21 @@ jobs:
         run: |
           base=$(sed -n 's/^snapstash.version=//p' gradle.properties)
           echo "name=$base.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
-      - name: Unit tests and debug APK
+      - name: Unit tests, release APK and debug APK
         env:
           SNAPSTASH_BUILD_NUMBER: ${{ github.run_number }}
-        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug -Proborazzi.test.record=true
-      - name: Name the APK
-        run: mv app/build/outputs/apk/debug/app-debug.apk "snapstash-${{ steps.version.outputs.name }}-debug.apk"
+        run: ./gradlew --no-daemon testDebugUnitTest assembleRelease assembleDebug -Proborazzi.test.record=true
+      - name: Name the APKs
+        run: |
+          mv app/build/outputs/apk/release/app-release.apk "snapstash-${{ steps.version.outputs.name }}.apk"
+          mv app/build/outputs/apk/debug/app-debug.apk "snapstash-${{ steps.version.outputs.name }}-debug.apk"
+      # The one to install: optimised, so startup is much faster. Same signing key as debug.
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapstash-${{ steps.version.outputs.name }}
+          path: snapstash-${{ steps.version.outputs.name }}.apk
+          if-no-files-found: error
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:

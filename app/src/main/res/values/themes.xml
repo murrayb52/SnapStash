@@ -3,4 +3,20 @@
     <style name="Theme.SnapStash" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/cabinet</item>
     </style>
+
+    <!--
+        Quick launcher: transparent window over the home screen, no open/close animation and no
+        starting window, so the card is the first thing drawn.
+    -->
+    <style name="Theme.SnapStash.Quick" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
 </resources>

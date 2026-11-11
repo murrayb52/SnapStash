@@ -6,12 +6,14 @@ activityCompose = "1.9.3"
 composeBom = "2024.12.01"
 camerax = "1.4.1"
 lifecycle = "2.8.7"
+profileinstaller = "1.4.1"
 junit = "4.13.2"
 robolectric = "4.14.1"
 roborazzi = "1.38.0"
 androidxTestJunit = "1.2.1"
 
 [libraries]
+androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
