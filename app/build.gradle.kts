@@ -56,6 +56,14 @@ android {
     testOptions {
         // Screenshot tests render the real UI under Robolectric.
         unitTests.isIncludeAndroidResources = true
+        // Print the full failure in the CI log, not just "AssertionError at Foo.kt:42".
+        unitTests.all {
+            it.testLogging {
+                events("failed")
+                exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                showStandardStreams = false
+            }
+        }
     }
 }
 

@@ -39,7 +39,8 @@ class HomeScreenTest {
     fun tappingTheFolderShowsItsPhotos() {
         show()
         compose.onNodeWithText("Receipts").performClick()
-        assertEquals(listOf("1"), browsed)
+        compose.waitForIdle()
+        assertEquals("browsed (opened=$opened)", listOf("1"), browsed)
         assertEquals(emptyList<String>(), opened)
     }
 
@@ -47,7 +48,8 @@ class HomeScreenTest {
     fun tappingTheCameraOpensTheCamera() {
         show()
         compose.onNodeWithContentDescription("Receipts camera").performClick()
-        assertEquals(listOf("1"), opened)
+        compose.waitForIdle()
+        assertEquals("opened (browsed=$browsed)", listOf("1"), opened)
         assertEquals(emptyList<String>(), browsed)
     }
 
