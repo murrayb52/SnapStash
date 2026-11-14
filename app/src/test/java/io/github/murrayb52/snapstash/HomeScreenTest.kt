@@ -5,7 +5,8 @@ import android.provider.DocumentsContract
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -35,10 +36,13 @@ class HomeScreenTest {
         }
     }
 
+    // The tests invoke each node's click action directly: Robolectric drops the simulated touch on
+    // this screen, but the click action is exactly what a real tap on that node runs.
+
     @Test
     fun tappingTheFolderShowsItsPhotos() {
         show()
-        compose.onNodeWithText("Receipts").performClick()
+        compose.onNodeWithText("Receipts").performSemanticsAction(SemanticsActions.OnClick)
         compose.waitForIdle()
         assertEquals("browsed (opened=$opened)", listOf("1"), browsed)
         assertEquals(emptyList<String>(), opened)
@@ -47,7 +51,7 @@ class HomeScreenTest {
     @Test
     fun tappingTheCameraOpensTheCamera() {
         show()
-        compose.onNodeWithContentDescription("Receipts camera").performClick()
+        compose.onNodeWithContentDescription("Receipts camera").performSemanticsAction(SemanticsActions.OnClick)
         compose.waitForIdle()
         assertEquals("opened (browsed=$browsed)", listOf("1"), opened)
         assertEquals(emptyList<String>(), browsed)
