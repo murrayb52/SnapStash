@@ -32,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,7 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun HomeScreen(buttons: List<CaptureButton>, onOpen: (CaptureButton) -> Unit, onSettings: () -> Unit) {
+fun HomeScreen(
+    buttons: List<CaptureButton>,
+    onOpen: (CaptureButton) -> Unit,
+    onBrowse: (CaptureButton) -> Unit,
+    onSettings: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,7 +66,7 @@ fun HomeScreen(buttons: List<CaptureButton>, onOpen: (CaptureButton) -> Unit, on
                     lineHeight = 34.sp,
                 )
                 if (buttons.isNotEmpty()) {
-                    Text("Tap a folder to open its camera.", color = Stash.Muted, fontSize = 15.sp)
+                    Text("Tap a folder to see its photos, or the camera to shoot.", color = Stash.Muted, fontSize = 15.sp)
                 }
             }
             IconButton(onClick = onSettings) {
@@ -71,14 +78,19 @@ fun HomeScreen(buttons: List<CaptureButton>, onOpen: (CaptureButton) -> Unit, on
         if (buttons.isEmpty()) {
             EmptyCabinet(onSettings, Modifier.weight(1f))
         } else {
-            FolderStack(buttons, onOpen, Modifier.weight(1f))
+            FolderStack(buttons, onOpen, onBrowse, Modifier.weight(1f))
         }
     }
 }
 
 /** Big folders that share the screen; past a handful they keep a minimum size and scroll. */
 @Composable
-private fun FolderStack(buttons: List<CaptureButton>, onOpen: (CaptureButton) -> Unit, modifier: Modifier) {
+private fun FolderStack(
+    buttons: List<CaptureButton>,
+    onOpen: (CaptureButton) -> Unit,
+    onBrowse: (CaptureButton) -> Unit,
+    modifier: Modifier,
+) {
     val gap = 14.dp
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val n = buttons.size
@@ -92,7 +104,8 @@ private fun FolderStack(buttons: List<CaptureButton>, onOpen: (CaptureButton) ->
                 FolderCard(
                     button = button,
                     index = i + 1,
-                    onClick = { onOpen(button) },
+                    onClick = { onBrowse(button) },
+                    onCamera = { onOpen(button) },
                     modifier = Modifier.fillMaxWidth().height(height),
                 )
             }
@@ -101,13 +114,24 @@ private fun FolderStack(buttons: List<CaptureButton>, onOpen: (CaptureButton) ->
     }
 }
 
-/** One button, drawn as a coloured file folder: index on the tab, name and destination on the front. */
+/**
+ * One button, drawn as a coloured file folder: index on the tab, name and destination on the front.
+ * With [onCamera], the camera circle is its own button and [onClick] is for the rest of the folder.
+ */
 @Composable
-fun FolderCard(button: CaptureButton, index: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun FolderCard(
+    button: CaptureButton,
+    index: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onCamera: (() -> Unit)? = null,
+) {
     val path = shortPath(FolderAccess.displayPath(Uri.parse(button.folderUri)))
     FolderGraphic(
         color = button.color,
-        modifier = modifier.clip(FolderShape(110.dp, 22.dp, 18.dp)).clickable(onClick = onClick),
+        modifier = modifier
+            .clip(FolderShape(110.dp, 22.dp, 18.dp))
+            .clickable(onClickLabel = if (onCamera != null) "Show photos" else null, onClick = onClick),
         tab = {
             Text(
                 "%02d".format(index),
@@ -142,18 +166,38 @@ fun FolderCard(button: CaptureButton, index: Int, onClick: () -> Unit, modifier:
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Box(
-                    Modifier
-                        .size(52.dp)
-                        .background(Stash.Ink.copy(alpha = 0.12f), CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painterResource(R.drawable.ic_camera),
-                        contentDescription = null,
-                        tint = Stash.Ink,
-                        modifier = Modifier.size(26.dp),
-                    )
+                if (onCamera != null) {
+                    // A real button: solid ink circle, so it reads as "shoot" apart from the folder.
+                    Box(
+                        Modifier
+                            .size(60.dp)
+                            .clip(CircleShape)
+                            .background(Stash.Ink)
+                            .clickable(onClickLabel = "Open camera", onClick = onCamera)
+                            .semantics { contentDescription = "${button.label} camera" },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.ic_camera),
+                            contentDescription = null,
+                            tint = button.color,
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
+                } else {
+                    Box(
+                        Modifier
+                            .size(52.dp)
+                            .background(Stash.Ink.copy(alpha = 0.12f), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.ic_camera),
+                            contentDescription = null,
+                            tint = Stash.Ink,
+                            modifier = Modifier.size(26.dp),
+                        )
+                    }
                 }
             }
         },

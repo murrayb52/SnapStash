@@ -1,5 +1,6 @@
 package io.github.murrayb52.snapstash
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -55,6 +56,36 @@ object FolderAccess {
     /** A path a person recognises, e.g. "Internal storage/Pictures/SnapStash/Clicks". */
     fun displayPath(tree: Uri): String =
         runCatching { readablePath(DocumentsContract.getTreeDocumentId(tree)) }.getOrDefault(tree.toString())
+
+    /**
+     * Shows the folder in the phone's file manager (the system Files app, or another app that can
+     * browse folders). Tries the folder itself first, then its storage root. Returns false if
+     * nothing on the phone can show it.
+     */
+    fun openInFiles(context: Context, tree: Uri): Boolean = browseIntents(tree).any { intent ->
+        try {
+            context.startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        } catch (e: SecurityException) {
+            false
+        }
+    }
+
+    /** The ways to ask for [tree] to be shown, best first. */
+    fun browseIntents(tree: Uri): List<Intent> {
+        val docId = runCatching { DocumentsContract.getTreeDocumentId(tree) }.getOrNull() ?: return emptyList()
+        val authority = tree.authority ?: return emptyList()
+        fun view(uri: Uri, type: String) = Intent(Intent.ACTION_VIEW)
+            .setDataAndType(uri, type)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        return listOf(
+            view(DocumentsContract.buildDocumentUri(authority, docId), DocumentsContract.Document.MIME_TYPE_DIR),
+            view(DocumentsContract.buildDocumentUriUsingTree(tree, docId), DocumentsContract.Document.MIME_TYPE_DIR),
+            view(DocumentsContract.buildRootUri(authority, docId.substringBefore(':')), DocumentsContract.Root.MIME_TYPE_ITEM),
+        )
+    }
 
     /** Creates an empty JPEG in [tree] and opens it for writing. Throws if the folder is unusable. */
     fun createPhoto(context: Context, tree: Uri, name: String): Pair<Uri, OutputStream> {

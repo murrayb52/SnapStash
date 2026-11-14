@@ -1,6 +1,7 @@
 package io.github.murrayb52.snapstash
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import android.graphics.Color as AndroidColor
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
                     else -> HomeScreen(
                         buttons = ButtonStore.buttons,
                         onOpen = { cameraId = it.id },
+                        onBrowse = { browse(it) },
                         onSettings = { showSettings = true },
                     )
                 }
@@ -60,6 +62,13 @@ class MainActivity : ComponentActivity() {
             cameraId = id
         } else {
             Toast.makeText(this, "That button no longer exists", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Shows the folder's photos in the phone's file manager. */
+    private fun browse(button: CaptureButton) {
+        if (!FolderAccess.openInFiles(this, Uri.parse(button.folderUri))) {
+            Toast.makeText(this, "No file manager on this phone can open that folder", Toast.LENGTH_LONG).show()
         }
     }
 

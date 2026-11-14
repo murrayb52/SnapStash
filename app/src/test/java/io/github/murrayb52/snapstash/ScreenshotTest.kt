@@ -63,19 +63,19 @@ class ScreenshotTest {
 
     @Test
     fun home() {
-        compose.setContent { SnapStashTheme { HomeScreen(sample, onOpen = {}, onSettings = {}) } }
+        compose.setContent { SnapStashTheme { HomeScreen(sample, onOpen = {}, onBrowse = {}, onSettings = {}) } }
         shot("1_home")
     }
 
     @Test
     fun homeTwoFolders() {
-        compose.setContent { SnapStashTheme { HomeScreen(sample.take(2), onOpen = {}, onSettings = {}) } }
+        compose.setContent { SnapStashTheme { HomeScreen(sample.take(2), onOpen = {}, onBrowse = {}, onSettings = {}) } }
         shot("2_home_two_folders")
     }
 
     @Test
     fun homeEmpty() {
-        compose.setContent { SnapStashTheme { HomeScreen(emptyList(), onOpen = {}, onSettings = {}) } }
+        compose.setContent { SnapStashTheme { HomeScreen(emptyList(), onOpen = {}, onBrowse = {}, onSettings = {}) } }
         shot("3_home_empty")
     }
 

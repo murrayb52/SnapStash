@@ -15,8 +15,9 @@ rename, reorder, re-folder or delete them at any time. No buttons or folders are
 
 **Everyday use:**
 
-1. Tap a button on the app's home screen, or use a home-screen shortcut that opens that camera
-   directly.
+1. Tap the **camera circle** on a folder on the app's home screen, use SnapStash Quick, or use a
+   home-screen shortcut that opens that camera directly. Tapping the rest of a folder shows the
+   photos already in it, in your phone's file manager.
 2. Tap the shutter. Every tap saves one photo, and the camera stays open for the next one.
 3. A green "✓ Saved …" message confirms each photo. If a save fails, for example because the
    folder was deleted, a dialog says **Not saved** and gives the reason.
