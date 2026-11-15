@@ -59,7 +59,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -521,31 +525,30 @@ enum class LocationState { OFF, SEARCHING, FIXED }
  */
 @Composable
 private fun KeepOpenToggle(keepOpen: Boolean, onChange: (Boolean) -> Unit) {
+    // The whole thing (switch and label) is one toggle, so the label is a tap target too.
     Column(
         Modifier
             .clip(RoundedCornerShape(16.dp))
-            .clickable(onClickLabel = if (keepOpen) "Close after each photo" else "Keep camera open") { onChange(!keepOpen) }
+            .toggleable(value = keepOpen, role = Role.Switch, onValueChange = onChange)
             .padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
-            Modifier
-                .size(48.dp)
-                .background(if (keepOpen) Stash.Manila else Color.Black.copy(alpha = 0.45f), CircleShape)
-                .border(2.dp, if (keepOpen) Stash.Manila else Stash.Paper.copy(alpha = 0.5f), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                if (keepOpen) "∞" else "1",
-                color = if (keepOpen) Stash.Ink else Stash.Paper,
-                fontSize = if (keepOpen) 24.sp else 19.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
+        Switch(
+            checked = keepOpen,
+            onCheckedChange = null,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Stash.Ink,
+                checkedTrackColor = Stash.Manila,
+                checkedBorderColor = Stash.Manila,
+                uncheckedThumbColor = Stash.Paper,
+                uncheckedTrackColor = Color.Black.copy(alpha = 0.45f),
+                uncheckedBorderColor = Stash.Paper.copy(alpha = 0.6f),
+            ),
+        )
         Spacer(Modifier.height(4.dp))
         Text(
-            if (keepOpen) "MORE" else "ONE",
-            style = Stash.TabLabel.copy(fontSize = 10.sp, letterSpacing = 1.5.sp),
+            "MORE PHOTOS",
+            style = Stash.TabLabel.copy(fontSize = 10.sp, letterSpacing = 1.2.sp),
             color = if (keepOpen) Stash.Manila else Stash.Paper.copy(alpha = 0.75f),
         )
     }

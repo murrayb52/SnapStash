@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
+import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
@@ -40,9 +42,12 @@ class CameraChromeTest {
                 )
             }
         }
-        compose.onNodeWithText("ONE").assertIsDisplayed().performSemanticsAction(SemanticsActions.OnClick)
+        val toggle = compose.onNodeWithText("MORE PHOTOS")
+        toggle.assertIsDisplayed().assertIsOff()
+        toggle.performSemanticsAction(SemanticsActions.OnClick)
         assertEquals(true, keepOpen)
-        compose.onNodeWithText("MORE").assertIsDisplayed().performSemanticsAction(SemanticsActions.OnClick)
+        toggle.assertIsOn()
+        toggle.performSemanticsAction(SemanticsActions.OnClick)
         assertEquals(false, keepOpen)
     }
 }
