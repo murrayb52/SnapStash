@@ -16,6 +16,8 @@ data class CaptureButton(
     /** Storage Access Framework tree URI of the chosen folder. */
     val folderUri: String,
     val colorIndex: Int = 0,
+    /** Optional picture for the folder, a file name in [FolderIcons]' storage. */
+    val iconFile: String? = null,
 ) {
     val color: Color get() = Color(PALETTE[Math.floorMod(colorIndex, PALETTE.size)])
 

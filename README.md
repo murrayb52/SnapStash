@@ -11,14 +11,24 @@ original what and why.
 **One-time setup:** open **⚙ Settings → + Add button**. Give the button a name, then tap
 **Choose folder…**. The system folder picker opens at `Pictures/SnapStash`, where you can pick
 an existing folder or create a new one (e.g. `Clicks`). Add as many buttons as you like. You can
-rename, reorder, re-folder or delete them at any time. No buttons or folders are built in.
+rename, reorder, re-folder or delete them at any time. A folder can also have a **picture**
+(Edit folder → Picture → Choose), shown on the folder, in SnapStash Quick and on its shortcut. No buttons or folders are built in.
 
 **Everyday use:**
 
 1. Tap the **camera circle** on a folder on the app's home screen, use SnapStash Quick, or use a
    home-screen shortcut that opens that camera directly. Tapping the rest of a folder shows the
    photos already in it, in your phone's file manager.
-2. Tap the shutter. Every tap saves one photo, and the camera stays open for the next one.
+2. Tap the shutter. By default it's **one shot**: the photo is saved, "Saved" shows briefly, and
+   SnapStash closes. For several photos, tap the **ONE / MORE** toggle next to the shutter first;
+   with **MORE** the camera stays open and every tap saves another photo. It's back to ONE each
+   time the camera opens.
+   - **Focus:** tap the preview to focus on that spot. Before every shot the camera also focuses
+     on the last tapped spot (or the centre), so close-up receipts come out sharp.
+   - **Location:** photos are tagged with GPS coordinates in their EXIF data, like the built-in
+     camera, so Google Photos or Samsung Gallery can show where each was taken. The pin under
+     the saved count turns yellow once there is a location fix. Turn it off in
+     **Settings → Camera → Save location**.
 3. A green "✓ Saved …" message confirms each photo. If a save fails, for example because the
    folder was deleted, a dialog says **Not saved** and gives the reason.
 
@@ -79,7 +89,7 @@ Other technical decisions:
 - **Storage: the system folder picker (Storage Access Framework).** Each button holds a lasting
   permission to the one folder the user picked for it, so folders are fully user-configurable
   without broad storage permissions. The photos are ordinary files that survive uninstalling the
-  app. The only runtime permission is the camera.
+  app. The runtime permissions are the camera and, optionally, location (to tag photos with where they were taken).
 - **The file is created in the button's folder before the shutter fires.** A missing or
   disconnected folder is reported at once, and a failed capture deletes its empty file.
 - **Buttons are stored as a small JSON list** in the app's preferences.

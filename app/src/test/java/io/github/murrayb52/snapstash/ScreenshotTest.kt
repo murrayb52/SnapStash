@@ -117,8 +117,11 @@ class ScreenshotTest {
                         savedCount = 3,
                         busy = false,
                         savedName = "receipts_2026-11-07_181305.jpg",
+                        keepOpen = false,
+                        location = LocationState.FIXED,
                         onBack = {},
                         onShoot = {},
+                        onKeepOpen = {},
                     )
                 }
             }

@@ -45,7 +45,10 @@ object Shortcuts {
         ShortcutInfoCompat.Builder(context, button.id)
             .setShortLabel(button.label)
             .setLongLabel("${button.label} camera")
-            .setIcon(IconCompat.createWithResource(context, R.drawable.ic_shortcut))
+            .setIcon(
+                FolderIcons.load(context, button.iconFile)?.let { IconCompat.createWithBitmap(it) }
+                    ?: IconCompat.createWithResource(context, R.drawable.ic_shortcut)
+            )
             .setIntent(
                 Intent(context, MainActivity::class.java)
                     .setAction(Intent.ACTION_VIEW)

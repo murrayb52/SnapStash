@@ -37,7 +37,12 @@ class MainActivity : ComponentActivity() {
                 val button = ButtonStore.get(cameraId)
                 when {
                     showSettings -> SettingsScreen(onBack = { showSettings = false })
-                    button != null -> CameraScreen(button = button, onBack = { cameraId = null })
+                    button != null -> CameraScreen(
+                        button = button,
+                        onBack = { cameraId = null },
+                        // One-shot photo saved: close SnapStash, back to wherever the user came from.
+                        onDone = { finish() },
+                    )
                     else -> HomeScreen(
                         buttons = ButtonStore.buttons,
                         onOpen = { cameraId = it.id },

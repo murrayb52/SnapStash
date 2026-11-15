@@ -49,6 +49,7 @@ object ButtonStore {
         prefs?.edit()?.putString(KEY_BUTTONS, encode(buttons))?.commit()
         Shortcuts.sync(context, buttons)
         FolderAccess.releaseUnused(context, buttons)
+        FolderIcons.releaseUnused(context, buttons)
     }
 
     private fun encode(list: List<CaptureButton>): String = JSONArray().apply {
@@ -59,6 +60,7 @@ object ButtonStore {
                     .put("label", it.label)
                     .put("folderUri", it.folderUri)
                     .put("colorIndex", it.colorIndex)
+                    .put("iconFile", it.iconFile) // null leaves the key out
             )
         }
     }.toString()
@@ -74,6 +76,7 @@ object ButtonStore {
                     label = o.getString("label"),
                     folderUri = o.getString("folderUri"),
                     colorIndex = o.optInt("colorIndex", i),
+                    iconFile = if (o.isNull("iconFile")) null else o.getString("iconFile"),
                 )
             }
         }.getOrDefault(emptyList())

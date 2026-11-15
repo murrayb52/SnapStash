@@ -349,7 +349,20 @@ class QuickLaunchActivity : Activity() {
         contentDescription = "${button.label} camera"
         setOnClickListener { openFolder(button) }
 
-        addView(FolderIcon(context, folderColor(button)), LinearLayout.LayoutParams(dp(34f), dp(28f)))
+        val picture = FolderIcons.load(context, button.iconFile)
+        if (picture != null) {
+            addView(ImageView(context).apply {
+                setImageBitmap(picture)
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                background = GradientDrawable().apply {
+                    cornerRadius = dp(9f).toFloat()
+                    setStroke(dp(2f), folderColor(button))
+                }
+                clipToOutline = true
+            }, LinearLayout.LayoutParams(dp(36f), dp(36f)))
+        } else {
+            addView(FolderIcon(context, folderColor(button)), LinearLayout.LayoutParams(dp(34f), dp(28f)))
+        }
         addView(text(button.label, 18f, PAPER, bold = true).apply {
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END

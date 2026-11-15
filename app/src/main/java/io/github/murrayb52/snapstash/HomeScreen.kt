@@ -32,6 +32,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -146,6 +151,20 @@ fun FolderCard(
                 Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                val context = LocalContext.current
+                val icon = remember(button.iconFile) { FolderIcons.load(context, button.iconFile) }
+                if (icon != null) {
+                    Image(
+                        icon.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(2.dp, Stash.Ink.copy(alpha = 0.18f), RoundedCornerShape(16.dp)),
+                    )
+                    Spacer(Modifier.size(14.dp))
+                }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
                     Text(
                         button.label,

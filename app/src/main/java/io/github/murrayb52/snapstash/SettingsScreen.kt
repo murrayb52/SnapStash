@@ -2,6 +2,14 @@ package io.github.murrayb52.snapstash
 
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.foundation.Image
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,6 +51,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -113,6 +122,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     },
                 )
             }
+            item(key = "camera") { CameraSection() }
             item(key = "quick") { QuickLauncherSection() }
         }
 
@@ -149,6 +159,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             onDismiss = {
                 editing = null
                 FolderAccess.releaseUnused(context, ButtonStore.buttons)
+                FolderIcons.releaseUnused(context, ButtonStore.buttons)
             },
             onSave = {
                 ButtonStore.upsert(context, it)
@@ -171,6 +182,43 @@ fun SettingsScreen(onBack: () -> Unit) {
             },
             dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel") } },
         )
+    }
+}
+
+/** Camera settings: tag photos with where they were taken. */
+@Composable
+private fun CameraSection() {
+    val context = LocalContext.current
+    var on by remember { mutableStateOf(CameraPrefs.saveLocation(context)) }
+    var allowed by remember { mutableStateOf(LocationTracker.hasPermission(context)) }
+    val askLocation = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+        allowed = results.values.any { it }
+    }
+    Column(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 22.dp)) {
+        Text("CAMERA", style = Stash.TabLabel, color = Stash.Manila)
+        Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Save location", color = Stash.Paper, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    when {
+                        !on -> "Photos aren't tagged with where they were taken."
+                        allowed -> "Photos are tagged with where they were taken, like the built-in camera."
+                        else -> "Needs location permission. Tap the switch to allow it."
+                    },
+                    color = if (on && !allowed) Stash.Danger else Stash.Muted,
+                    fontSize = 13.sp,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Switch(
+                checked = on && allowed,
+                onCheckedChange = { checked ->
+                    on = checked
+                    CameraPrefs.setSaveLocation(context, checked)
+                    if (checked && !allowed) askLocation.launch(LocationTracker.PERMISSIONS)
+                },
+            )
+        }
     }
 }
 
@@ -219,6 +267,29 @@ private fun QuickLauncherSection() {
     }
 }
 
+/**
+ * The folder's picture if it has one (a rounded square edged in the folder's colour), otherwise a
+ * small drawn folder in its colour.
+ */
+@Composable
+fun FolderBadge(button: CaptureButton, width: Dp = 46.dp, height: Dp = 36.dp) {
+    val context = LocalContext.current
+    val icon = remember(button.iconFile) { FolderIcons.load(context, button.iconFile) }
+    if (icon == null) {
+        MiniFolder(button.color, width, height)
+    } else {
+        Image(
+            icon.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(width)
+                .clip(RoundedCornerShape(width * 0.24f))
+                .border(2.dp, button.color, RoundedCornerShape(width * 0.24f)),
+        )
+    }
+}
+
 /** A small folder icon in the button's colour. */
 @Composable
 fun MiniFolder(color: Color, width: Dp = 46.dp, height: Dp = 36.dp) {
@@ -248,7 +319,7 @@ private fun FolderRow(
 
     Surface(onClick = onEdit, shape = RoundedCornerShape(18.dp), color = Stash.Drawer, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(start = 16.dp, top = 14.dp, bottom = 14.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            MiniFolder(button.color)
+            FolderBadge(button)
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -330,8 +401,23 @@ internal fun EditFolderCard(
     var label by remember { mutableStateOf(initial.label) }
     var folderUri by remember { mutableStateOf(initial.folderUri) }
     var colorIndex by remember { mutableStateOf(initial.colorIndex) }
+    var iconFile by remember { mutableStateOf(initial.iconFile) }
+    var importing by remember { mutableStateOf(false) }
     var problem by remember { mutableStateOf<String?>(null) }
-    val draft = initial.copy(label = label.trim(), folderUri = folderUri, colorIndex = colorIndex)
+    val draft = initial.copy(label = label.trim(), folderUri = folderUri, colorIndex = colorIndex, iconFile = iconFile)
+    val scope = rememberCoroutineScope()
+
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        importing = true
+        scope.launch {
+            val result = withContext(Dispatchers.IO) { runCatching { FolderIcons.import(context, uri) } }
+            importing = false
+            result
+                .onSuccess { iconFile = it; problem = null }
+                .onFailure { problem = "Couldn't use that image. Try another one." }
+        }
+    }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
@@ -377,6 +463,33 @@ internal fun EditFolderCard(
                             )
                             Text(if (folderUri.isEmpty()) "Pick" else "Change", color = Stash.Manila, fontWeight = FontWeight.SemiBold)
                         }
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("PICTURE", style = Stash.TabLabel, color = Stash.Muted)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        FolderBadge(draft, 44.dp, 34.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            when {
+                                importing -> "Adding…"
+                                iconFile == null -> "None. Shows the folder."
+                                else -> "Shown on this folder"
+                            },
+                            color = Stash.Muted,
+                            fontSize = 13.sp,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (iconFile != null) {
+                            TextButton(onClick = { iconFile = null }) { Text("Remove", color = Stash.Muted) }
+                        }
+                        TextButton(
+                            onClick = {
+                                imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            },
+                            enabled = !importing,
+                        ) { Text(if (iconFile == null) "Choose" else "Change", color = Stash.Manila, fontWeight = FontWeight.SemiBold) }
                     }
                 }
 
