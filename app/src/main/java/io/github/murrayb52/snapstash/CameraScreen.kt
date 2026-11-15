@@ -64,6 +64,8 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -530,6 +532,7 @@ private fun KeepOpenToggle(keepOpen: Boolean, onChange: (Boolean) -> Unit) {
         Modifier
             .clip(RoundedCornerShape(16.dp))
             .toggleable(value = keepOpen, role = Role.Switch, onValueChange = onChange)
+            .semantics { contentDescription = "More photos" }
             .padding(horizontal = 8.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -545,11 +548,13 @@ private fun KeepOpenToggle(keepOpen: Boolean, onChange: (Boolean) -> Unit) {
                 uncheckedBorderColor = Stash.Paper.copy(alpha = 0.6f),
             ),
         )
-        Spacer(Modifier.height(4.dp))
+        // "1" = one shot then close; "∞" = keep the camera open for more.
         Text(
-            "MORE PHOTOS",
-            style = Stash.TabLabel.copy(fontSize = 10.sp, letterSpacing = 1.2.sp),
-            color = if (keepOpen) Stash.Manila else Stash.Paper.copy(alpha = 0.75f),
+            if (keepOpen) "∞" else "1",
+            color = if (keepOpen) Stash.Manila else Stash.Paper,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.height(28.dp),
         )
     }
 }

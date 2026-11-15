@@ -20,8 +20,8 @@ rename, reorder, re-folder or delete them at any time. A folder can also have a 
    home-screen shortcut that opens that camera directly. Tapping the rest of a folder shows the
    photos already in it, in your phone's file manager.
 2. Tap the shutter. By default it's **one shot**: the photo is saved, "Saved" shows briefly, and
-   SnapStash closes. For several photos, turn on the **More photos** switch next to the shutter
-   first; the camera then stays open and every tap saves another photo. It's off again each time
+   SnapStash closes. For several photos, turn on the switch next to the shutter (it shows **1** when
+   off and **∞** when on) first; the camera then stays open and every tap saves another photo. It's off again each time
    the camera opens.
    - **Focus:** tap the preview to focus on that spot. Before every shot the camera also focuses
      on the last tapped spot (or the centre), so close-up receipts come out sharp.
